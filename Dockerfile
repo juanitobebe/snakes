@@ -10,5 +10,6 @@ WORKDIR /tmp
 RUN git clone --branch v$GBDK2020_VERSION https://github.com/Zal0/gbdk-2020.git
 RUN cd /tmp/gbdk-2020 && make
 RUN cp -r /tmp/gbdk-2020/build/gbdk /opt
+ENV PATH="/opt/gbdk/bin:${PATH}"
 WORKDIR /opt
 RUN mkdir snake
