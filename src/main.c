@@ -2,7 +2,16 @@
 #include <stdio.h>
 #include <types.h>
 
-#include "sprites/snake_sprite.h"
+#include "tiles/snake_body.h"
+#include "tiles/snake_map.h"
+#include "tiles/snake_sprite.h"
+
+typedef struct SnakeStruct {
+  UINT8 pos_x;
+  UINT8 pos_y;
+  UINT8 speed;
+  UBYTE last_direction;
+} SnakeCharacter;
 
 // Rotates the head sprite based on direction.
 // TODO(juanitobebe): Maybe fix the bug reseting flags.
@@ -49,39 +58,92 @@ void AnimateMouth(UBYTE direction) {
   }
 }
 
+// Move character respecting bounds and paintig a movement trial.
+void MoveSnake(SnakeCharacter* snake_c) {
+  // Get Visible grid current location
+  UINT8 grid_x = (snake_c->pos_x - 8) / 8;
+  UINT8 grid_y = (snake_c->pos_y - 16) / 8;
+
+  // SnakeMap is an array that represents every background tile (20 * 18).
+  // A SnakeMap tile is changed to the corresponding tile representing
+  // movement of the snake; current_map_index calculates grid_x, grid_y
+  // into the array position.
+  unsigned long current_map_index = grid_y * 20 + grid_x;
+  if (snake_c->last_direction == J_LEFT && grid_x > 0) {
+    snake_c->pos_x -= snake_c->speed;
+    SnakeMap[current_map_index] = 0x1;
+  }
+
+  if (snake_c->last_direction == J_RIGHT && grid_x < 19) {
+    snake_c->pos_x += snake_c->speed;
+    SnakeMap[current_map_index] = 0x1;
+  }
+
+  if (snake_c->last_direction == J_UP && grid_y > 0) {
+    snake_c->pos_y -= snake_c->speed;
+    SnakeMap[current_map_index] = 0x2;
+  }
+
+  if (snake_c->last_direction == J_DOWN && grid_y < 17) {
+    snake_c->pos_y += snake_c->speed;
+    SnakeMap[current_map_index] = 0x2;
+  }
+
+  move_sprite(0, snake_c->pos_x, snake_c->pos_y);
+  set_bkg_tiles(0, 0, 20, 18, SnakeMap);
+}
+
+void UpdateSwitches() {
+  HIDE_WIN;
+  SHOW_SPRITES;
+  SHOW_BKG;
+}
+
 void main() {
   set_sprite_data(0, 4, Snake);
   set_sprite_tile(0, 0);
-  SHOW_SPRITES;
   DISPLAY_ON;
 
+  // Initialize Background
+  set_bkg_data(0, 3, SnakeBody);
+  set_bkg_tiles(0, 0, 20, 18, SnakeMap);
+
   // Character control
-  UINT8 SPEED = 10;  // TODO(juanitobebe): Move it to some constant file?
-  UINT8 head_x = 88;
-  UINT8 head_y = 78;
-  move_sprite(0, head_x, head_y);
+  SnakeCharacter snake_c;
+  snake_c.speed = 8;
+  snake_c.pos_x = 64;
+  snake_c.pos_y = 40;
+  MoveSnake(&snake_c);
 
   while (1) {
-    // Move Sprite
+    // Register Input
     switch (joypad()) {
       case J_LEFT:
-        scroll_sprite(0, -SPEED, 0);
+        snake_c.last_direction = J_LEFT;
         break;
       case J_RIGHT:
-        scroll_sprite(0, SPEED, 0);
+        snake_c.last_direction = J_RIGHT;
         break;
       case J_UP:
-        scroll_sprite(0, 0, -SPEED);
+        snake_c.last_direction = J_UP;
         break;
       case J_DOWN:
-        scroll_sprite(0, 0, SPEED);
+        snake_c.last_direction = J_DOWN;
         break;
       default:
         break;
     }
-    // Animate according to direction
-    RotateHead(joypad());
-    AnimateMouth(joypad());
-    delay(200);
+
+    // Move sprites
+    MoveSnake(&snake_c);
+
+    // Animate
+    RotateHead(snake_c.last_direction);
+    AnimateMouth(snake_c.last_direction);
+
+    // House keeping
+    UpdateSwitches();
+    delay(150);
+    wait_vbl_done();
   }
 }
