@@ -3,4 +3,4 @@
 /* Start of tile array. */
 extern unsigned char SnakeMap[];
 
-/* End of SNAKE_BODY.H */
+/* End of SNAKE_MAP.H */

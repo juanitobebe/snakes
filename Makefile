@@ -1,4 +1,4 @@
-CC	= lcc -Wa-l -Wl-m -Wl-j
+CC = lcc -Wa-l -Wl-m -Wl-j
 
 all: tiles
 	$(CC) -c -o bin/main.o src/main.c
@@ -14,4 +14,4 @@ prereq:
 	mkdir -p bin
 
 clean:
-	rm -rf bin	
+	rm -rf bin
