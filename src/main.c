@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <types.h>
 
+#include "tiles/prey_tiles.h"
 #include "tiles/snake_body.h"
 #include "tiles/snake_map.h"
 #include "tiles/snake_sprite.h"
@@ -13,10 +14,17 @@ typedef struct SnakeStruct {
   UBYTE last_direction;
 } SnakeCharacter;
 
+typedef struct PreyStruct {
+  UINT8 pos_x;
+  UINT8 pos_y;
+  UINT8 tile;
+  UINT8 active;
+} PreyCharacter;
+
 // Rotates the head sprite based on direction.
 // TODO(juanitobebe): Maybe fix the bug reseting flags.
 // I kind of like the way it moves.
-void RotateHead(UBYTE direction) {
+void RotateSnakeHead(UBYTE direction) {
   switch (direction) {
     case J_LEFT:
       set_sprite_prop(0, get_sprite_prop(0) | S_FLIPX);
@@ -88,9 +96,21 @@ void MoveSnake(SnakeCharacter* snake_c) {
     snake_c->pos_y += snake_c->speed;
     SnakeMap[current_map_index] = 0x2;
   }
+}
 
-  move_sprite(0, snake_c->pos_x, snake_c->pos_y);
-  set_bkg_tiles(0, 0, 20, 18, SnakeMap);
+// Spawns a prey
+// TODO(juanitobebe): Make it random within range.
+void InitPrey(PreyCharacter* prey_c) {
+  prey_c->pos_x = 40;
+  prey_c->pos_y = 70;
+  prey_c->tile = 5;
+  prey_c->active = 1;
+}
+
+void UpdatePrey(PreyCharacter* prey_c) {
+  if (!prey_c->active) {
+    InitPrey(prey_c);
+  }
 }
 
 void UpdateSwitches() {
@@ -99,21 +119,39 @@ void UpdateSwitches() {
   SHOW_BKG;
 }
 
-void main() {
-  set_sprite_data(0, 4, Snake);
-  set_sprite_tile(0, 0);
-  DISPLAY_ON;
+void PerformantDelay(UINT8 num_loops) {
+  for (UINT8 i = 0; i < num_loops; i++) {
+    wait_vbl_done();
+  }
+}
 
+void Draw(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
+  // Draw background
+  set_bkg_tiles(0, 0, 20, 18, SnakeMap);
+
+  // Draw Snake
+  move_sprite(0, snake_c->pos_x, snake_c->pos_y);
+
+  // Draw prey
+  move_sprite(1, prey_c->pos_x, prey_c->pos_y);
+  set_sprite_tile(1, prey_c->tile);
+}
+
+void main() {
   // Initialize Background
   set_bkg_data(0, 3, SnakeBody);
   set_bkg_tiles(0, 0, 20, 18, SnakeMap);
 
-  // Character control
+  // Initialize characters
+  // Snake
+  set_sprite_data(0, 4, Snake);
   SnakeCharacter snake_c;
   snake_c.speed = 8;
   snake_c.pos_x = 64;
   snake_c.pos_y = 40;
-  MoveSnake(&snake_c);
+  // Prey
+  PreyCharacter prey_c;
+  set_sprite_data(4, 2, PreyTiles);
 
   while (1) {
     // Register Input
@@ -134,16 +172,16 @@ void main() {
         break;
     }
 
-    // Move sprites
+    // Logic
     MoveSnake(&snake_c);
-
-    // Animate
-    RotateHead(snake_c.last_direction);
+    RotateSnakeHead(snake_c.last_direction);
     AnimateMouth(snake_c.last_direction);
+    UpdatePrey(&prey_c);
+
+    Draw(&snake_c, &prey_c);
 
     // House keeping
     UpdateSwitches();
-    delay(150);
-    wait_vbl_done();
+    PerformantDelay(8);
   }
 }
