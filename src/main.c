@@ -1,4 +1,5 @@
 #include <gb/gb.h>
+#include <rand.h>
 #include <stdio.h>
 #include <types.h>
 
@@ -99,11 +100,16 @@ void MoveSnake(SnakeCharacter* snake_c) {
 }
 
 // Spawns a prey
-// TODO(juanitobebe): Make it random within range.
+// TODO(juanitobebe): Make it more random
 void InitPrey(PreyCharacter* prey_c) {
-  prey_c->pos_x = 40;
-  prey_c->pos_y = 70;
-  prey_c->tile = 5;
+  // This seed is wrong.
+  UWORD seed = DIV_REG;
+  seed |= (UWORD)DIV_REG << 8;
+  initarand(seed);  // Is this too expensive?
+
+  prey_c->pos_x = rand() & 160;
+  prey_c->pos_y = rand() & 158;
+  prey_c->tile = (rand() & 1) + 4;
   prey_c->active = 1;
 }
 
