@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include <rand.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <types.h>
 
 #include "tiles/prey_tiles.h"
@@ -99,22 +100,21 @@ void MoveSnake(SnakeCharacter* snake_c) {
   }
 }
 
+// Generates a random number within [min, max].
+int random(int min, int max) { return min + abs(rand()) % ((max + 1) - min); }
+
 // Spawns a prey
 // TODO(juanitobebe): Make it more random
 void InitPrey(PreyCharacter* prey_c) {
-  // This seed is wrong.
-  UWORD seed = DIV_REG;
-  seed |= (UWORD)DIV_REG << 8;
-  initarand(seed);  // Is this too expensive?
-
-  prey_c->pos_x = rand() & 160;
-  prey_c->pos_y = rand() & 158;
-  prey_c->tile = (rand() & 1) + 4;
-  prey_c->active = 1;
+  // The compiler is doing wrong conversion from int to UINT8. So as a
+  // workaround I'm casting to usigned int before.
+  prey_c->pos_x = (unsigned int)random(8, 160);
+  prey_c->pos_y = (unsigned int)random(16, 152);
+  prey_c->tile = (unsigned int)random(4, 5);
 }
 
-void UpdatePrey(PreyCharacter* prey_c) {
-  if (!prey_c->active) {
+void UpdatePrey(PreyCharacter* prey_c, UINT8 eating) {
+  if (eating) {
     InitPrey(prey_c);
   }
 }
@@ -143,6 +143,18 @@ void Draw(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
   set_sprite_tile(1, prey_c->tile);
 }
 
+// Returns 1 if there's a collition with the prey, 0 if not.
+UINT8 EatingPreyCollision(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
+  if ((snake_c->pos_x < (prey_c->pos_x + 8)) &&
+      ((snake_c->pos_x + 8) > prey_c->pos_x) &&
+      (snake_c->pos_y < (prey_c->pos_y + 8)) &&
+      ((snake_c->pos_y + 8) > prey_c->pos_y)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 void main() {
   // Initialize Background
   set_bkg_data(0, 3, SnakeBody);
@@ -158,7 +170,12 @@ void main() {
   // Prey
   PreyCharacter prey_c;
   set_sprite_data(4, 2, PreyTiles);
+  InitPrey(&prey_c);
 
+  // TODO(juanitobebe): This seed is wrong.
+  initrand(392);
+
+  UINT8 eating = 0;
   while (1) {
     // Register Input
     switch (joypad()) {
@@ -180,9 +197,10 @@ void main() {
 
     // Logic
     MoveSnake(&snake_c);
+    eating = EatingPreyCollision(&snake_c, &prey_c);
     RotateSnakeHead(snake_c.last_direction);
     AnimateMouth(snake_c.last_direction);
-    UpdatePrey(&prey_c);
+    UpdatePrey(&prey_c, eating);
 
     Draw(&snake_c, &prey_c);
 
