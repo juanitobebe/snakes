@@ -135,7 +135,7 @@ void InitPrey(PreyCharacter* prey_c) {
   // The compiler is doing wrong conversion from int to UINT8. So as a
   // workaround I'm casting to usigned int before.
   prey_c->pos_x = (unsigned int)random(MIN_X, MAX_X);
-  prey_c->pos_y = (unsigned int)random(MIN_X, MAX_Y);
+  prey_c->pos_y = (unsigned int)random(MIN_Y, MAX_Y);
   prey_c->tile = (unsigned int)random(4, 5);
 }
 
