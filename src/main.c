@@ -16,14 +16,14 @@ UINT8 MAX_Y = 152;
 
 typedef struct BodyNodeStruct {
   UINT8 tile;
-  unsigned long current_map_index;  // Expensive!
+  unsigned long map_index;  // Expensive!
 } BodyNode;
 
 typedef struct SnakeStruct {
   UINT8 pos_x;
   UINT8 pos_y;
   UINT8 speed;
-  UBYTE last_direction;
+  UBYTE direction;
   UINT8 size;
   BodyNode body[369];
 } SnakeCharacter;
@@ -80,47 +80,95 @@ void AnimateMouth(UBYTE direction) {
   }
 }
 
+UINT8 DetermineTile(UBYTE previous_direction, UBYTE current_direction) {
+  if (previous_direction == J_LEFT) {
+    if (current_direction == J_LEFT) {
+      return kSnakeBody_LEFT;
+    }
+    if (current_direction == J_UP) {
+      return kSnakeBody_LEFT_UP;
+    }
+    if (current_direction == J_DOWN) {
+      return kSnakeBody_LEFT_DOWN;
+    }
+  }
+
+  if (previous_direction == J_RIGHT) {
+    if (current_direction == J_RIGHT) {
+      return kSnakeBody_RIGHT;
+    }
+    if (current_direction == J_UP) {
+      return kSnakeBody_RIGHT_UP;
+    }
+    if (current_direction == J_DOWN) {
+      return kSnakeBody_RIGHT_DOWN;
+    }
+  }
+
+  if (previous_direction == J_UP) {
+    if (current_direction == J_LEFT) {
+      return kSnakeBody_UP_LEFT;
+    }
+    if (current_direction == J_RIGHT) {
+      return kSnakeBody_UP_RIGHT;
+    }
+    if (current_direction == J_UP) {
+      return kSnakeBody_UP;
+    }
+  }
+
+  if (previous_direction == J_DOWN) {
+    if (current_direction == J_LEFT) {
+      return kSnakeBody_DOWN_LEFT;
+    }
+    if (current_direction == J_RIGHT) {
+      return kSnakeBody_DOWN_RIGHT;
+    }
+    if (current_direction == J_DOWN) {
+      return kSnakeBody_DOWN;
+    }
+  }
+  return kSnakeBody_EMPTY;
+}
+
 // Updates the Snake body block positions in the background.
-void UpdateBody(SnakeCharacter* snake_c, UINT8 snake_prev_x,
-                UINT8 snake_prev_y) {
+void UpdateBody(SnakeCharacter* snake_c, UINT8 snake_prev_x, UINT8 snake_prev_y,
+                UBYTE snake_previous_direction) {
   for (UINT8 i = 0; i < snake_c->size; i++) {
     if (i == snake_c->size - 1) {
       UINT8 grid_x = (snake_prev_x - 8) / 8;
       UINT8 grid_y = (snake_prev_y - 16) / 8;
-      snake_c->body[i].current_map_index = grid_y * 20 + grid_x;
-      snake_c->body[i].tile = (snake_c->last_direction == J_LEFT ||
-                               snake_c->last_direction == J_RIGHT)
-                                  ? 0x1
-                                  : 0x2;
+      snake_c->body[i].map_index = grid_y * 20 + grid_x;
+      snake_c->body[i].tile =
+          DetermineTile(snake_previous_direction, snake_c->direction);
     } else {
-      snake_c->body[i].current_map_index =
-          snake_c->body[i + 1].current_map_index;
+      snake_c->body[i].map_index = snake_c->body[i + 1].map_index;
       snake_c->body[i].tile = snake_c->body[i + 1].tile;
     }
   }
 }
 
 // Move character respecting bounds and paintig a movement trial.
-void MoveSnake(SnakeCharacter* snake_c) {
+void MoveSnake(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
   UINT8 snake_prev_x = snake_c->pos_x;
   UINT8 snake_prev_y = snake_c->pos_y;
-  if (snake_c->last_direction == J_LEFT && snake_c->pos_x > MIN_X) {
+  if (snake_c->direction == J_LEFT && snake_c->pos_x > MIN_X) {
     snake_c->pos_x -= snake_c->speed;
   }
 
-  if (snake_c->last_direction == J_RIGHT && snake_c->pos_x < MAX_X) {
+  if (snake_c->direction == J_RIGHT && snake_c->pos_x < MAX_X) {
     snake_c->pos_x += snake_c->speed;
   }
 
-  if (snake_c->last_direction == J_UP && snake_c->pos_y > MIN_Y) {
+  if (snake_c->direction == J_UP && snake_c->pos_y > MIN_Y) {
     snake_c->pos_y -= snake_c->speed;
   }
 
-  if (snake_c->last_direction == J_DOWN && snake_c->pos_y < MAX_Y) {
+  if (snake_c->direction == J_DOWN && snake_c->pos_y < MAX_Y) {
     snake_c->pos_y += snake_c->speed;
   }
 
-  UpdateBody(snake_c, snake_prev_x, snake_prev_y);
+  UpdateBody(snake_c, snake_prev_x, snake_prev_y, snake_previous_direction);
 }
 
 void HandleEating(SnakeCharacter* snake_c, int eating) {
@@ -147,7 +195,7 @@ void InitSnake(SnakeCharacter* snake_c) {
   snake_c->speed = 8;
   snake_c->pos_x = 64;
   snake_c->pos_y = 40;
-  snake_c->last_direction = 0;
+  snake_c->direction = 0;
   snake_c->size = 0;
 }
 
@@ -175,7 +223,7 @@ void SetBackground(SnakeCharacter* snake) {
   }
 
   for (unsigned long i = 0; i < snake->size; i++) {
-    SnakeMap[snake->body[i].current_map_index] = snake->body[i].tile;
+    SnakeMap[snake->body[i].map_index] = snake->body[i].tile;
   }
 }
 
@@ -209,7 +257,7 @@ UINT8 EatingPreyCollision(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
 
 void main() {
   // Initialize Background
-  set_bkg_data(0, 3, SnakeBody);
+  set_bkg_data(0, 13, SnakeBody);
   set_bkg_tiles(0, 0, 20, 18, SnakeMap);
 
   // Initialize characters
@@ -229,28 +277,29 @@ void main() {
   UINT8 eating = 0;
   while (1) {
     // Register Input
+    UBYTE snake_previous_direction = snake_c.direction;
     switch (joypad()) {
       case J_LEFT:
-        snake_c.last_direction = J_LEFT;
+        snake_c.direction = J_LEFT;
         break;
       case J_RIGHT:
-        snake_c.last_direction = J_RIGHT;
+        snake_c.direction = J_RIGHT;
         break;
       case J_UP:
-        snake_c.last_direction = J_UP;
+        snake_c.direction = J_UP;
         break;
       case J_DOWN:
-        snake_c.last_direction = J_DOWN;
+        snake_c.direction = J_DOWN;
         break;
       default:
         break;
     }
 
     // Logic
-    MoveSnake(&snake_c);
+    MoveSnake(&snake_c, snake_previous_direction);
     eating = EatingPreyCollision(&snake_c, &prey_c);
-    RotateSnakeHead(snake_c.last_direction);
-    AnimateMouth(snake_c.last_direction);
+    RotateSnakeHead(snake_c.direction);
+    AnimateMouth(snake_c.direction);
     UpdatePrey(&prey_c, eating);
     HandleEating(&snake_c, eating);
 
