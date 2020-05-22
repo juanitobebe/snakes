@@ -35,6 +35,7 @@
 *.i*86
 *.x86_64
 *.hex
+*.gb
 
 # Debug files
 *.dSYM/
@@ -52,4 +53,7 @@ Mkfile.old
 dkms.conf
 
 # Visual Studio Code
-.vs_code
+.vs_code/
+
+# Anything else
+*.xlsx
