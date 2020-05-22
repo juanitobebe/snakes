@@ -81,11 +81,12 @@ void AnimateMouth(UBYTE direction) {
 }
 
 // Updates the Snake body block positions in the background.
-void UpdateBody(SnakeCharacter* snake_c) {
+void UpdateBody(SnakeCharacter* snake_c, UINT8 snake_prev_x,
+                UINT8 snake_prev_y) {
   for (UINT8 i = 0; i < snake_c->size; i++) {
     if (i == snake_c->size - 1) {
-      UINT8 grid_x = (snake_c->pos_x - 8) / 8;
-      UINT8 grid_y = (snake_c->pos_y - 16) / 8;
+      UINT8 grid_x = (snake_prev_x - 8) / 8;
+      UINT8 grid_y = (snake_prev_y - 16) / 8;
       snake_c->body[i].current_map_index = grid_y * 20 + grid_x;
       snake_c->body[i].tile = (snake_c->last_direction == J_LEFT ||
                                snake_c->last_direction == J_RIGHT)
@@ -101,6 +102,8 @@ void UpdateBody(SnakeCharacter* snake_c) {
 
 // Move character respecting bounds and paintig a movement trial.
 void MoveSnake(SnakeCharacter* snake_c) {
+  UINT8 snake_prev_x = snake_c->pos_x;
+  UINT8 snake_prev_y = snake_c->pos_y;
   if (snake_c->last_direction == J_LEFT && snake_c->pos_x > MIN_X) {
     snake_c->pos_x -= snake_c->speed;
   }
@@ -117,7 +120,7 @@ void MoveSnake(SnakeCharacter* snake_c) {
     snake_c->pos_y += snake_c->speed;
   }
 
-  UpdateBody(snake_c);
+  UpdateBody(snake_c, snake_prev_x, snake_prev_y);
 }
 
 void HandleEating(SnakeCharacter* snake_c, int eating) {
