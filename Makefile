@@ -1,9 +1,9 @@
 CC = lcc -Wa-l -Wl-m -Wl-j
 
 all: tiles
-	
+	$(CC) -c -o bin/utils.o src/utils.c
 	$(CC) -c -o bin/main.o src/main.c
-	$(CC) -o bin/snakes.gb bin/main.o $(wildcard bin/tiles/*.o)
+	$(CC) -o bin/snakes.gb $(wildcard bin/*.o) $(wildcard bin/tiles/*.o)
 
 tiles: prereq
 	mkdir -p bin/tiles

@@ -8,6 +8,7 @@
 #include "tiles/snake_body.h"
 #include "tiles/snake_map.h"
 #include "tiles/snake_sprite.h"
+#include "utils.h"
 
 UINT8 MIN_X = 8;
 UINT8 MAX_X = 160;
@@ -136,9 +137,7 @@ void UpdateBody(SnakeCharacter* snake_c, UINT8 snake_prev_x, UINT8 snake_prev_y,
                 UBYTE snake_previous_direction) {
   for (UINT8 i = 0; i < snake_c->size; i++) {
     if (i == snake_c->size - 1) {
-      UINT8 grid_x = (snake_prev_x - 8) / 8;
-      UINT8 grid_y = (snake_prev_y - 16) / 8;
-      snake_c->body[i].map_index = grid_y * 20 + grid_x;
+      snake_c->body[i].map_index = CordToTileNumber(snake_prev_x, snake_prev_y);
       snake_c->body[i].tile =
           DetermineTile(snake_previous_direction, snake_c->direction);
     } else {
@@ -168,7 +167,9 @@ void MoveSnake(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
     snake_c->pos_y += snake_c->speed;
   }
 
-  UpdateBody(snake_c, snake_prev_x, snake_prev_y, snake_previous_direction);
+  if ((snake_prev_x != snake_c->pos_x) || (snake_prev_y != snake_c->pos_y)) {
+    UpdateBody(snake_c, snake_prev_x, snake_prev_y, snake_previous_direction);
+  }
 }
 
 void HandleEating(SnakeCharacter* snake_c, int eating) {
@@ -176,9 +177,6 @@ void HandleEating(SnakeCharacter* snake_c, int eating) {
     snake_c->size += 1;
   }
 }
-
-// Generates a random number within [min, max].
-int random(int min, int max) { return min + abs(rand()) % ((max + 1) - min); }
 
 // Spawns a prey
 // TODO(juanitobebe): Make it more random
@@ -202,18 +200,6 @@ void InitSnake(SnakeCharacter* snake_c) {
 void UpdatePrey(PreyCharacter* prey_c, UINT8 eating) {
   if (eating) {
     InitPrey(prey_c);
-  }
-}
-
-void UpdateSwitches() {
-  HIDE_WIN;
-  SHOW_SPRITES;
-  SHOW_BKG;
-}
-
-void PerformantDelay(UINT8 num_loops) {
-  for (UINT8 i = 0; i < num_loops; i++) {
-    wait_vbl_done();
   }
 }
 
@@ -243,7 +229,7 @@ void Draw(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
   set_sprite_tile(1, prey_c->tile);
 }
 
-// Returns 1 if there's a collition with the prey, 0 if not.
+// Returns 1 if there's a collision with the prey, 0 if not.
 UINT8 EatingPreyCollision(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
   if ((snake_c->pos_x < (prey_c->pos_x + 8)) &&
       ((snake_c->pos_x + 8) > prey_c->pos_x) &&
@@ -253,6 +239,30 @@ UINT8 EatingPreyCollision(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
   } else {
     return 0;
   }
+}
+
+// Returns 1 if there's a collision of the Snake head and body, 0 if not.
+UINT8
+SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
+  // Collided by going into oposite direction.
+  if (snake_c->size > 0 &&
+      ((snake_c->direction == J_LEFT && snake_previous_direction == J_RIGHT) ||
+       (snake_c->direction == J_RIGHT && snake_previous_direction == J_LEFT) ||
+       (snake_c->direction == J_UP && snake_previous_direction == J_DOWN) ||
+       (snake_c->direction == J_DOWN && snake_previous_direction == J_UP))) {
+    return 1;
+  }
+
+  // Check background tile positions for collistions.
+  unsigned long background_map_index =
+      CordToTileNumber(snake_c->pos_x, snake_c->pos_y);
+  for (unsigned long i = 0; i < snake_c->size; i++) {
+    if (background_map_index == snake_c->body[i].map_index) {
+      return 1;
+    }
+  }
+
+  return 0;
 }
 
 void main() {
@@ -275,7 +285,8 @@ void main() {
   initrand(392);
 
   UINT8 eating = 0;
-  while (1) {
+  UINT8 alive = 1;
+  while (alive) {
     // Register Input
     UBYTE snake_previous_direction = snake_c.direction;
     switch (joypad()) {
@@ -295,18 +306,28 @@ void main() {
         break;
     }
 
-    // Logic
+    // Move
     MoveSnake(&snake_c, snake_previous_direction);
-    eating = EatingPreyCollision(&snake_c, &prey_c);
-    RotateSnakeHead(snake_c.direction);
-    AnimateMouth(snake_c.direction);
-    UpdatePrey(&prey_c, eating);
-    HandleEating(&snake_c, eating);
 
-    Draw(&snake_c, &prey_c);
+    // Collision
+    alive = !SnakeCollision(&snake_c, snake_previous_direction);
+    eating = EatingPreyCollision(&snake_c, &prey_c);
+
+    // Logic
+    if (alive) {
+      RotateSnakeHead(snake_c.direction);
+      AnimateMouth(snake_c.direction);
+      UpdatePrey(&prey_c, eating);
+      HandleEating(&snake_c, eating);
+      Draw(&snake_c, &prey_c);
+    }
 
     // House keeping
     UpdateSwitches();
     PerformantDelay(8);
   }
+
+  // Die routine
+  HIDE_SPRITES;
+  printf("\n \n \n \n \n \n \n     GAME OVER");
 }
