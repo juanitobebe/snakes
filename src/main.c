@@ -9,11 +9,23 @@
 #include "tiles/snake_map.h"
 #include "tiles/snake_sprite.h"
 
+UINT8 MIN_X = 8;
+UINT8 MAX_X = 160;
+UINT8 MIN_Y = 16;
+UINT8 MAX_Y = 152;
+
+typedef struct BodyNodeStruct {
+  UINT8 tile;
+  unsigned long current_map_index;  // Expensive!
+} BodyNode;
+
 typedef struct SnakeStruct {
   UINT8 pos_x;
   UINT8 pos_y;
   UINT8 speed;
   UBYTE last_direction;
+  UINT8 size;
+  BodyNode body[369];
 } SnakeCharacter;
 
 typedef struct PreyStruct {
@@ -68,35 +80,49 @@ void AnimateMouth(UBYTE direction) {
   }
 }
 
+// Updates the Snake body block positions in the background.
+void UpdateBody(SnakeCharacter* snake_c) {
+  for (UINT8 i = 0; i < snake_c->size; i++) {
+    if (i == snake_c->size - 1) {
+      UINT8 grid_x = (snake_c->pos_x - 8) / 8;
+      UINT8 grid_y = (snake_c->pos_y - 16) / 8;
+      snake_c->body[i].current_map_index = grid_y * 20 + grid_x;
+      snake_c->body[i].tile = (snake_c->last_direction == J_LEFT ||
+                               snake_c->last_direction == J_RIGHT)
+                                  ? 0x1
+                                  : 0x2;
+    } else {
+      snake_c->body[i].current_map_index =
+          snake_c->body[i + 1].current_map_index;
+      snake_c->body[i].tile = snake_c->body[i + 1].tile;
+    }
+  }
+}
+
 // Move character respecting bounds and paintig a movement trial.
 void MoveSnake(SnakeCharacter* snake_c) {
-  // Get Visible grid current location
-  UINT8 grid_x = (snake_c->pos_x - 8) / 8;
-  UINT8 grid_y = (snake_c->pos_y - 16) / 8;
-
-  // SnakeMap is an array that represents every background tile (20 * 18).
-  // A SnakeMap tile is changed to the corresponding tile representing
-  // movement of the snake; current_map_index calculates grid_x, grid_y
-  // into the array position.
-  unsigned long current_map_index = grid_y * 20 + grid_x;
-  if (snake_c->last_direction == J_LEFT && grid_x > 0) {
+  if (snake_c->last_direction == J_LEFT && snake_c->pos_x > MIN_X) {
     snake_c->pos_x -= snake_c->speed;
-    SnakeMap[current_map_index] = 0x1;
   }
 
-  if (snake_c->last_direction == J_RIGHT && grid_x < 19) {
+  if (snake_c->last_direction == J_RIGHT && snake_c->pos_x < MAX_X) {
     snake_c->pos_x += snake_c->speed;
-    SnakeMap[current_map_index] = 0x1;
   }
 
-  if (snake_c->last_direction == J_UP && grid_y > 0) {
+  if (snake_c->last_direction == J_UP && snake_c->pos_y > MIN_Y) {
     snake_c->pos_y -= snake_c->speed;
-    SnakeMap[current_map_index] = 0x2;
   }
 
-  if (snake_c->last_direction == J_DOWN && grid_y < 17) {
+  if (snake_c->last_direction == J_DOWN && snake_c->pos_y < MAX_Y) {
     snake_c->pos_y += snake_c->speed;
-    SnakeMap[current_map_index] = 0x2;
+  }
+
+  UpdateBody(snake_c);
+}
+
+void HandleEating(SnakeCharacter* snake_c, int eating) {
+  if (eating) {
+    snake_c->size += 1;
   }
 }
 
@@ -108,9 +134,18 @@ int random(int min, int max) { return min + abs(rand()) % ((max + 1) - min); }
 void InitPrey(PreyCharacter* prey_c) {
   // The compiler is doing wrong conversion from int to UINT8. So as a
   // workaround I'm casting to usigned int before.
-  prey_c->pos_x = (unsigned int)random(8, 160);
-  prey_c->pos_y = (unsigned int)random(16, 152);
+  prey_c->pos_x = (unsigned int)random(MIN_X, MAX_X);
+  prey_c->pos_y = (unsigned int)random(MIN_X, MAX_Y);
   prey_c->tile = (unsigned int)random(4, 5);
+}
+
+// Initializes the Snake Character
+void InitSnake(SnakeCharacter* snake_c) {
+  snake_c->speed = 8;
+  snake_c->pos_x = 64;
+  snake_c->pos_y = 40;
+  snake_c->last_direction = 0;
+  snake_c->size = 0;
 }
 
 void UpdatePrey(PreyCharacter* prey_c, UINT8 eating) {
@@ -131,8 +166,22 @@ void PerformantDelay(UINT8 num_loops) {
   }
 }
 
+void SetBackground(SnakeCharacter* snake) {
+  for (unsigned long i = 0; i < 360; i++) {
+    SnakeMap[i] = 0x0;
+  }
+
+  for (unsigned long i = 0; i < snake->size; i++) {
+    SnakeMap[snake->body[i].current_map_index] = snake->body[i].tile;
+  }
+}
+
 void Draw(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
   // Draw background
+  SetBackground(snake_c);
+  // SnakeMap is an array that represents every background tile (20 * 18).
+  // A SnakeMap tile is changed to the corresponding tile representing
+  // movement of the snake.
   set_bkg_tiles(0, 0, 20, 18, SnakeMap);
 
   // Draw Snake
@@ -164,9 +213,8 @@ void main() {
   // Snake
   set_sprite_data(0, 4, Snake);
   SnakeCharacter snake_c;
-  snake_c.speed = 8;
-  snake_c.pos_x = 64;
-  snake_c.pos_y = 40;
+  InitSnake(&snake_c);
+
   // Prey
   PreyCharacter prey_c;
   set_sprite_data(4, 2, PreyTiles);
@@ -201,6 +249,7 @@ void main() {
     RotateSnakeHead(snake_c.last_direction);
     AnimateMouth(snake_c.last_direction);
     UpdatePrey(&prey_c, eating);
+    HandleEating(&snake_c, eating);
 
     Draw(&snake_c, &prey_c);
 
