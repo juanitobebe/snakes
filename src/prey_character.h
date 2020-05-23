@@ -1,3 +1,4 @@
+// Struct representing a Prey.
 #ifndef SNAKE_SRC_PREY_CHARACTER_H
 #define SNAKE_SRC_PREY_CHARACTER_H
 

@@ -1,4 +1,4 @@
-// Module for functions related to the Snake
+// Module for functions related to the Snake.
 #ifndef SNAKE_SRC_SNAKE_H
 #define SNAKE_SRC_SNAKE_H
 

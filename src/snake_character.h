@@ -1,3 +1,4 @@
+// Struct representing a Snake and its body.
 #ifndef SNAKE_SRC_SNAKE_CHARACTER_H
 #define SNAKE_SRC_SNAKE_CHARACTER_H
 #include <types.h>

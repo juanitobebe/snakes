@@ -1,3 +1,4 @@
+// Miscellaneous utilities.
 #ifndef SNAKE_SRC_UTILS_H
 #define SNAKE_SRC_UTILS_H
 
