@@ -271,6 +271,14 @@ void SplashStart() {
   waitpadup();
 }
 
+void SplashGameOver() {
+  for (unsigned long i = 0; i < 360; i++) {
+    SnakeMap[i] = 0x0;
+  }
+  HIDE_SPRITES;
+  printf("\n \n \n \n \n \n \n     GAME OVER");
+}
+
 void main() {
   SplashStart();
 
@@ -335,7 +343,5 @@ void main() {
     PerformantDelay(8);
   }
 
-  // Die routine
-  HIDE_SPRITES;
-  printf("\n \n \n \n \n \n \n     GAME OVER");
+  SplashGameOver();
 }
