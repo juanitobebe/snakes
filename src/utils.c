@@ -6,6 +6,8 @@
 
 int random(int min, int max) { return min + abs(rand()) % ((max + 1) - min); }
 
+UINT8 RoundDown(UINT8 n, UINT8 m) { return (n / m) * m; }
+
 inline unsigned long CordToTileNumber(UINT8 x, UINT8 y) {
   UINT8 grid_x = (x - 8) / 8;
   UINT8 grid_y = (y - 16) / 8;
