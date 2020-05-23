@@ -31,4 +31,8 @@ void RotateSnakeHead(UBYTE direction);
 // TODO(juanitobebe): I liked it more before but I guess I don't really need it.
 void AnimateMouth(UBYTE direction);
 
+// Returns 1 if there's a collision of the Snake head and body, 0 if not.
+UINT8
+SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction);
+
 #endif  // SNAKE_SRC_SNAKE_H

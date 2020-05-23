@@ -8,51 +8,12 @@
 #include "prey_character.h"
 #include "snake.h"
 #include "snake_character.h"
+#include "snake_prey.h"
 #include "tiles/prey_tiles.h"
 #include "tiles/snake_body.h"
 #include "tiles/snake_map.h"
 #include "tiles/snake_sprite.h"
 #include "utils.h"
-
-// Returns 1 if there's a collision with the prey, 0 if not.
-UINT8 EatingPreyCollision(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
-  if ((snake_c->pos_x < (prey_c->pos_x + 8)) &&
-      ((snake_c->pos_x + 8) > prey_c->pos_x) &&
-      (snake_c->pos_y < (prey_c->pos_y + 8)) &&
-      ((snake_c->pos_y + 8) > prey_c->pos_y)) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-// Returns 1 if the Prey steps over the Snake. 0 if it doesn't.
-UINT8 PreyStepsOnSnake(PreyCharacter* prey_c, SnakeCharacter* snake_c) {
-  if (EatingPreyCollision(snake_c, prey_c)) {
-    return 1;
-  }
-
-  unsigned long prey_map_index = CordToTileNumber(prey_c->pos_x, prey_c->pos_y);
-  for (UINT8 i = 0; i < snake_c->size; i++) {
-    if (snake_c->body[i].map_index == prey_map_index) {
-      return 1;
-    }
-  }
-  return 0;
-}
-
-// Spawns a prey making sure it doesn't step on the snake.
-void SpawnPrey(PreyCharacter* prey_c, SnakeCharacter* snake_c) {
-  do {
-    InitPrey(prey_c);
-  } while (PreyStepsOnSnake(prey_c, snake_c));
-}
-
-void UpdatePrey(PreyCharacter* prey_c, SnakeCharacter* snake_c, UINT8 eating) {
-  if (eating) {
-    SpawnPrey(prey_c, snake_c);
-  }
-}
 
 void SetBackground(SnakeCharacter* snake) {
   for (unsigned long i = 0; i < 360; i++) {
@@ -78,30 +39,6 @@ void Draw(SnakeCharacter* snake_c, PreyCharacter* prey_c) {
   // Draw prey
   move_sprite(1, prey_c->pos_x, prey_c->pos_y);
   set_sprite_tile(1, prey_c->tile);
-}
-
-// Returns 1 if there's a collision of the Snake head and body, 0 if not.
-UINT8
-SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
-  // Collided by going into oposite direction.
-  if (snake_c->size > 0 &&
-      ((snake_c->direction == J_LEFT && snake_previous_direction == J_RIGHT) ||
-       (snake_c->direction == J_RIGHT && snake_previous_direction == J_LEFT) ||
-       (snake_c->direction == J_UP && snake_previous_direction == J_DOWN) ||
-       (snake_c->direction == J_DOWN && snake_previous_direction == J_UP))) {
-    return 1;
-  }
-
-  // Check background tile positions for collistions.
-  unsigned long background_map_index =
-      CordToTileNumber(snake_c->pos_x, snake_c->pos_y);
-  for (unsigned long i = 0; i < snake_c->size; i++) {
-    if (background_map_index == snake_c->body[i].map_index) {
-      return 1;
-    }
-  }
-
-  return 0;
 }
 
 void SplashStart() {
@@ -173,8 +110,10 @@ void main() {
     if (alive) {
       RotateSnakeHead(snake_c.direction);
       AnimateMouth(snake_c.direction);
-      UpdatePrey(&prey_c, &snake_c, eating);
-      HandleEating(&snake_c, eating);
+      if (eating) {
+        SpawnPrey(&prey_c, &snake_c);
+        snake_c.size += 1;
+      }
       Draw(&snake_c, &prey_c);
     }
 

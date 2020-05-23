@@ -149,3 +149,26 @@ void AnimateMouth(UBYTE direction) {
       set_sprite_tile(0, (is_mouth_closed) ? 3 : 2);
   }
 }
+
+UINT8
+SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
+  // Collided by going into oposite direction.
+  if (snake_c->size > 0 &&
+      ((snake_c->direction == J_LEFT && snake_previous_direction == J_RIGHT) ||
+       (snake_c->direction == J_RIGHT && snake_previous_direction == J_LEFT) ||
+       (snake_c->direction == J_UP && snake_previous_direction == J_DOWN) ||
+       (snake_c->direction == J_DOWN && snake_previous_direction == J_UP))) {
+    return 1;
+  }
+
+  // Check background tile positions for collistions.
+  unsigned long background_map_index =
+      CordToTileNumber(snake_c->pos_x, snake_c->pos_y);
+  for (unsigned long i = 0; i < snake_c->size; i++) {
+    if (background_map_index == snake_c->body[i].map_index) {
+      return 1;
+    }
+  }
+
+  return 0;
+}

@@ -7,6 +7,7 @@ bin_objs: obj_dir
 	$(CC) -c -o bin/constants.o src/constants.c
 	$(CC) -c -o bin/main.o src/main.c
 	$(CC) -c -o bin/prey.o src/prey.c
+	$(CC) -c -o bin/snake_prey.o src/snake_prey.c
 	$(CC) -c -o bin/snake.o src/snake.c
 	$(CC) -c -o bin/utils.o src/utils.c
 
