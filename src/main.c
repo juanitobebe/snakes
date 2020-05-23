@@ -179,7 +179,6 @@ void HandleEating(SnakeCharacter* snake_c, int eating) {
 }
 
 // Spawns a prey
-// TODO(juanitobebe): Make it more random
 void InitPrey(PreyCharacter* prey_c) {
   // The compiler is doing wrong conversion from int to UINT8. So as a
   // workaround I'm casting to usigned int before.
@@ -265,7 +264,19 @@ SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
   return 0;
 }
 
+void SplashStart() {
+  printf("\n \n \n \n \n \n \n       SNAKE \n \n \n \n \n \n    Press Start");
+  PerformantDelay(1);
+  waitpad(J_START);
+  waitpadup();
+}
+
 void main() {
+  SplashStart();
+
+  // Init random after user input.
+  initrand((UWORD)DIV_REG << 8);
+
   // Initialize Background
   set_bkg_data(0, 13, SnakeBody);
   set_bkg_tiles(0, 0, 20, 18, SnakeMap);
@@ -280,9 +291,6 @@ void main() {
   PreyCharacter prey_c;
   set_sprite_data(4, 2, PreyTiles);
   InitPrey(&prey_c);
-
-  // TODO(juanitobebe): This seed is wrong.
-  initrand(392);
 
   UINT8 eating = 0;
   UINT8 alive = 1;
