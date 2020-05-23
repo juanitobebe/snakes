@@ -2,7 +2,7 @@
 
 #include <types.h>
 
-extern const UINT8 MIN_X = 8;
-extern const UINT8 MAX_X = 160;
-extern const UINT8 MIN_Y = 16;
-extern const UINT8 MAX_Y = 152;
+extern const UINT8 kMinX = 8;
+extern const UINT8 kMaxX = 160;
+extern const UINT8 kMinY = 16;
+extern const UINT8 kMaxY = 152;
