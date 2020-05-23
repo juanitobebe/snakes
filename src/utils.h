@@ -1,3 +1,6 @@
+#ifndef SNAKE_SRC_UTILS_H
+#define SNAKE_SRC_UTILS_H
+
 #include <types.h>
 
 // Generates a random number within [min, max].
@@ -16,3 +19,5 @@ void UpdateSwitches();
 // Waits for the vertical blank interrupt (VBL) to finish num_loops times.
 // This causes a delay.
 void PerformantDelay(UINT8 num_loops);
+
+#endif  // SNAKE_SRC_UTILS_H
