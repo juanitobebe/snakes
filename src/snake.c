@@ -22,9 +22,11 @@ void HandleEating(SnakeCharacter* snake_c, int eating) {
   }
 }
 
-void MoveSnake(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
+void MoveSnake(SnakeCharacter* snake_c, UBYTE snake_next_direction,
+               UBYTE snake_previous_direction) {
   UINT8 snake_prev_x = snake_c->pos_x;
   UINT8 snake_prev_y = snake_c->pos_y;
+  snake_c->direction = snake_next_direction;
   if (snake_c->direction == J_LEFT && snake_c->pos_x > kMinX) {
     snake_c->pos_x -= snake_c->speed;
   }

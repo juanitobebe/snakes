@@ -13,6 +13,7 @@
 #include "tiles/snake_body.h"
 #include "tiles/snake_map.h"
 #include "tiles/snake_sprite.h"
+#include "timer.h"
 #include "utils.h"
 
 void SetBackground(SnakeCharacter* snake) {
@@ -80,27 +81,32 @@ void main() {
   UINT8 eating = 0;
   UINT8 alive = 1;
   while (alive) {
+    AddToTimer();
+
     // Register Input
-    UBYTE snake_previous_direction = snake_c.direction;
+    UBYTE snake_previous_direction, snake_new_direction;
+    snake_previous_direction = snake_new_direction = snake_c.direction;
     switch (joypad()) {
       case J_LEFT:
-        snake_c.direction = J_LEFT;
+        snake_new_direction = J_LEFT;
         break;
       case J_RIGHT:
-        snake_c.direction = J_RIGHT;
+        snake_new_direction = J_RIGHT;
         break;
       case J_UP:
-        snake_c.direction = J_UP;
+        snake_new_direction = J_UP;
         break;
       case J_DOWN:
-        snake_c.direction = J_DOWN;
+        snake_new_direction = J_DOWN;
         break;
       default:
         break;
     }
 
-    // Move
-    MoveSnake(&snake_c, snake_previous_direction);
+    // // Move periodically
+    if ((GetTimeFromTimer() & (UBYTE)0x03) == 0) {
+      MoveSnake(&snake_c, snake_new_direction, snake_previous_direction);
+    }
 
     // Collision
     alive = !SnakeCollision(&snake_c, snake_previous_direction);
@@ -119,7 +125,7 @@ void main() {
 
     // House keeping
     UpdateSwitches();
-    PerformantDelay(8);
+    PerformantDelay(1);
   }
 
   SplashGameOver();

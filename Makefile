@@ -1,4 +1,4 @@
-CC = lcc -Wa-l -Wl-m -Wl-j
+CC = lcc -Wa-l -Wl-m -Wl-j -M
 
 all: tile_objs bin_objs
 	$(CC) -o bin/snakes.gb $(wildcard bin/*.o) $(wildcard bin/tiles/*.o)
@@ -9,6 +9,7 @@ bin_objs: obj_dir
 	$(CC) -c -o bin/prey.o src/prey.c
 	$(CC) -c -o bin/snake_prey.o src/snake_prey.c
 	$(CC) -c -o bin/snake.o src/snake.c
+	$(CC) -c -o bin/timer.o src/timer.c
 	$(CC) -c -o bin/utils.o src/utils.c
 
 tile_objs: obj_dir

@@ -13,7 +13,8 @@ void InitSnake(SnakeCharacter* snake_c);
 void HandleEating(SnakeCharacter* snake_c, int eating);
 
 // Move character respecting bounds and paintig a movement trial.
-void MoveSnake(SnakeCharacter* snake_c, UBYTE snake_previous_direction);
+void MoveSnake(SnakeCharacter* snake_c, UBYTE snake_next_direction,
+               UBYTE snake_previous_direction);
 
 UINT8 DetermineTile(UBYTE previous_direction, UBYTE current_direction);
 
