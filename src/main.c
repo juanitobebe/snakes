@@ -103,7 +103,7 @@ void main() {
         break;
     }
 
-    // // Move periodically
+    // Move periodically
     if ((GetTimeFromTimer() & (UBYTE)0x03) == 0) {
       MoveSnake(&snake_c, snake_new_direction, snake_previous_direction);
     }
@@ -112,14 +112,19 @@ void main() {
     alive = !SnakeCollision(&snake_c, snake_previous_direction);
     eating = EatingPreyCollision(&snake_c, &prey_c);
 
-    // Logic
     if (alive) {
+      // Animation
       RotateSnakeHead(snake_c.direction);
       AnimateMouth(snake_c.direction);
+
+      // Prey handling
       if (eating) {
-        SpawnPrey(&prey_c, &snake_c);
         snake_c.size += 1;
+        SpawnPrey(&prey_c, &snake_c);
+      } else if (IsSpecialPrey(&prey_c) && PreyTimeout(&prey_c)) {
+        SpawnPrey(&prey_c, &snake_c);
       }
+
       Draw(&snake_c, &prey_c);
     }
 

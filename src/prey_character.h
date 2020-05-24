@@ -9,6 +9,7 @@ typedef struct PreyStruct {
   UINT8 pos_y;
   UINT8 tile;
   UINT8 active;
+  clock_t spawn_time;
 } PreyCharacter;
 
 #endif  // SNAKE_SRC_PREY_CHARACTER_H

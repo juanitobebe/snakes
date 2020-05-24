@@ -7,4 +7,10 @@
 // Initializes a prey character.
 void InitPrey(PreyCharacter* prey_c);
 
+// Returns 1 if the prey time has passed, 0 if not.
+UINT8 PreyTimeout(PreyCharacter* prey_c);
+
+// Returns 1 if the prey is special, 0 if not.
+UINT8 IsSpecialPrey(PreyCharacter* prey_c);
+
 #endif  // SNAKE_SRC_PREY_H
