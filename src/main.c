@@ -105,14 +105,16 @@ void main() {
 
     // Move periodically
     if ((GetTimeFromTimer() & (UBYTE)0x03) == 0) {
+      // Snake collisions
+      alive = !SnakeWallCollision(&snake_c, snake_new_direction) &&
+              !SnakeCollision(&snake_c, snake_previous_direction);
       MoveSnake(&snake_c, snake_new_direction, snake_previous_direction);
     }
 
-    // Collision
-    alive = !SnakeCollision(&snake_c, snake_previous_direction);
-    eating = EatingPreyCollision(&snake_c, &prey_c);
-
     if (alive) {
+      // Prey and Snake collisions
+      eating = EatingPreyCollision(&snake_c, &prey_c);
+
       // Animation
       RotateSnakeHead(snake_c.direction);
       AnimateMouth(snake_c.direction);

@@ -174,3 +174,11 @@ SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
 
   return 0;
 }
+
+UINT8
+SnakeWallCollision(SnakeCharacter* snake_c, UBYTE snake_next_direction) {
+  return ((snake_c->pos_x <= kMinX && snake_next_direction == J_LEFT) ||
+          (snake_c->pos_x >= kMaxX && snake_next_direction == J_RIGHT) ||
+          (snake_c->pos_y <= kMinY && snake_next_direction == J_UP) ||
+          (snake_c->pos_y >= kMaxY && snake_next_direction == J_DOWN));
+}

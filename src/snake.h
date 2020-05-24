@@ -36,4 +36,8 @@ void AnimateMouth(UBYTE direction);
 UINT8
 SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction);
 
+// Returns 1 if the Snake collieded with the wall, 0 if not.
+UINT8
+SnakeWallCollision(SnakeCharacter* snake_c, UBYTE snake_next_direction);
+
 #endif  // SNAKE_SRC_SNAKE_H
