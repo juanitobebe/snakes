@@ -53,6 +53,7 @@ void SplashGameOver() {
   for (unsigned long i = 0; i < 360; i++) {
     SnakeMap[i] = 0x0;
   }
+  set_bkg_tiles(0, 0, 20, 18, SnakeMap);
   HIDE_SPRITES;
   printf("\n \n \n \n \n \n \n     GAME OVER");
 }
