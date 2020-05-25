@@ -132,34 +132,31 @@ void RotateSnakeHead(UBYTE direction) {
   }
 }
 
-void AnimateMouth(UBYTE direction) {
+void AnimateMouth(UBYTE direction, UINT8 eating) {
   // Head sprite tiles are:
   //   0: Closed Horizontal
   //   1: Open Horizontal
   //   2: Closed Vertical
   //   3: Open Vertical
-  UINT8 current_tile = get_sprite_tile(0);
-  UBYTE is_mouth_closed = (current_tile == 0 || current_tile == 2) ? 1 : 0;
-
   switch (direction) {
     case J_LEFT:
     case J_RIGHT:
-      set_sprite_tile(0, (is_mouth_closed) ? 1 : 0);
+      set_sprite_tile(0, (eating) ? 1 : 0);
       break;
     case J_UP:
     case J_DOWN:
-      set_sprite_tile(0, (is_mouth_closed) ? 3 : 2);
+      set_sprite_tile(0, (eating) ? 3 : 2);
   }
 }
 
 UINT8
-SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_previous_direction) {
+SnakeCollision(SnakeCharacter* snake_c, UBYTE snake_next_direction) {
   // Collided by going into oposite direction.
   if (snake_c->size > 0 &&
-      ((snake_c->direction == J_LEFT && snake_previous_direction == J_RIGHT) ||
-       (snake_c->direction == J_RIGHT && snake_previous_direction == J_LEFT) ||
-       (snake_c->direction == J_UP && snake_previous_direction == J_DOWN) ||
-       (snake_c->direction == J_DOWN && snake_previous_direction == J_UP))) {
+      ((snake_c->direction == J_LEFT && snake_next_direction == J_RIGHT) ||
+       (snake_c->direction == J_RIGHT && snake_next_direction == J_LEFT) ||
+       (snake_c->direction == J_UP && snake_next_direction == J_DOWN) ||
+       (snake_c->direction == J_DOWN && snake_next_direction == J_UP))) {
     return 1;
   }
 

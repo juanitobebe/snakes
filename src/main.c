@@ -81,12 +81,13 @@ void main() {
 
   UINT8 eating = 0;
   UINT8 alive = 1;
+  UBYTE snake_new_direction =
+      0x0;  // Placeholder, snake won't move until joypad press.
   while (alive) {
     AddToTimer();
 
     // Register Input
-    UBYTE snake_previous_direction, snake_new_direction;
-    snake_previous_direction = snake_new_direction = snake_c.direction;
+    UBYTE snake_previous_direction = snake_c.direction;
     switch (joypad()) {
       case J_LEFT:
         snake_new_direction = J_LEFT;
@@ -105,30 +106,31 @@ void main() {
     }
 
     // Move periodically
-    if ((GetTimeFromTimer() & (UBYTE)0x03) == 0) {
+    if ((GetTimeFromTimer() & (UBYTE)0x07) == 0) {
       // Snake collisions
       alive = !SnakeWallCollision(&snake_c, snake_new_direction) &&
-              !SnakeCollision(&snake_c, snake_previous_direction);
-      MoveSnake(&snake_c, snake_new_direction, snake_previous_direction);
-    }
+              !SnakeCollision(&snake_c, snake_new_direction);
 
-    if (alive) {
-      // Prey and Snake collisions
-      eating = EatingPreyCollision(&snake_c, &prey_c);
+      if (alive) {
+        MoveSnake(&snake_c, snake_new_direction, snake_previous_direction);
 
-      // Animation
-      RotateSnakeHead(snake_c.direction);
-      AnimateMouth(snake_c.direction);
+        // Prey and Snake collisions
+        eating = EatingPreyCollision(&snake_c, &prey_c);
 
-      // Prey handling
-      if (eating) {
-        snake_c.size += 1;
-        SpawnPrey(&prey_c, &snake_c);
-      } else if (IsSpecialPrey(&prey_c) && PreyTimeout(&prey_c)) {
-        SpawnPrey(&prey_c, &snake_c);
+        // Animation
+        RotateSnakeHead(snake_c.direction);
+        AnimateMouth(snake_c.direction, eating);
+
+        // Prey handling
+        if (eating) {
+          snake_c.size += 1;
+          SpawnPrey(&prey_c, &snake_c);
+        } else if (IsSpecialPrey(&prey_c) && PreyTimeout(&prey_c)) {
+          SpawnPrey(&prey_c, &snake_c);
+        }
+
+        Draw(&snake_c, &prey_c);
       }
-
-      Draw(&snake_c, &prey_c);
     }
 
     // House keeping

@@ -27,10 +27,8 @@ void UpdateBody(SnakeCharacter* snake_c, UINT8 snake_prev_x, UINT8 snake_prev_y,
 // I kind of like the way it moves.
 void RotateSnakeHead(UBYTE direction);
 
-// Animates the mouth based on current direction.
-// If the mouth is closed then we open it, if it was open then we close it.
-// TODO(juanitobebe): I liked it more before but I guess I don't really need it.
-void AnimateMouth(UBYTE direction);
+// Animates the mouth to look like eating the prey.
+void AnimateMouth(UBYTE direction, UINT8 eating);
 
 // Returns 1 if there's a collision of the Snake head and body, 0 if not.
 UINT8
