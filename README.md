@@ -2,6 +2,8 @@
 
 Gameboy Snake Game using [GBDK-2020](https://github.com/Zal0/gbdk-2020.git).
 
+![Snakes Alpha Gameplay](https://cdn.kapwing.com/final_5ecb3365a8e42400146f9bbe_765365.gif)
+
 # Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
