@@ -62,3 +62,16 @@ dkms.conf
 
 # Anything else
 *.xlsx
+bin/constants.asm
+bin/main.asm
+bin/prey.asm
+bin/snake_prey.asm
+bin/snake.asm
+bin/snakes.ihx
+bin/snakes.noi
+bin/timer.asm
+bin/utils.asm
+bin/tiles/prey_tiles.asm
+bin/tiles/snake_body.asm
+bin/tiles/snake_map.asm
+bin/tiles/snake_sprite.asm
