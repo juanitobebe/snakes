@@ -1,4 +1,4 @@
-CC = lcc -Wa-l -Wl-m -Wl-j -M
+CC = lcc -Wa-l -Wl-m -Wl-j
 
 all: tile_objs bin_objs
 	$(CC) -o bin/snakes.gb $(wildcard bin/*.o) $(wildcard bin/tiles/*.o)
