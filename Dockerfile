@@ -1,27 +1,15 @@
-FROM ubuntu:latest
+FROM frolvlad/alpine-glibc:latest
 
-ENV TZ=America/Los_Angeles
-ENV GBDK2020_VERSION v4.0
-ENV SDCC_COMMIT 11929
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-RUN apt-get update && apt-get install -y git curl subversion build-essential flex bison libboost-dev \
-    texinfo zip netcat gawk python2.7 libz-dev \
-    && apt-get autoclean
-ENV SDCCDIR=/usr/local
+# GBDK-2020 version based on GitHub releases
+ENV GBDK2020_VERSION 4.0.2
 
-RUN mkdir /sdcc -p \
-    && cd /sdcc \
-    && svn checkout svn://svn.code.sf.net/p/sdcc/code/trunk/sdcc@${SDCC_COMMIT} \
-    && cd sdcc \
-    && ./configure --disable-pic14-port --disable-pic16-port \
-    && make && make install \
-    && cd / \
-    && rm -Rf /sdcc /tmp/*
+# install wget, make and libstdc++
+RUN apk add --no-cache wget make libstdc++
 
-WORKDIR /tmp
-RUN git clone --branch $GBDK2020_VERSION https://github.com/Zal0/gbdk-2020.git
-RUN cd /tmp/gbdk-2020 && make
-RUN cp -r /tmp/gbdk-2020/build/gbdk /opt
+RUN wget https://github.com/Zal0/gbdk-2020/releases/download/${GBDK2020_VERSION}/gbdk-linux64.tar.gz
+RUN tar -xf gbdk-linux64.tar.gz
+RUN rm gbdk-linux64.tar.gz
+RUN cp -r gbdk/ /opt
 ENV PATH="/opt/gbdk/bin:${PATH}"
-WORKDIR /opt
-RUN mkdir snake
+WORKDIR /opt/snakes
+
