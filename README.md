@@ -23,23 +23,18 @@ $ cd snakes
 Build my dockerfile to make [GBDK-2020](https://github.com/Zal0/gbdk-2020.git) (couldn't make it work from the releases 😜) and get all the dev environment for free
 
 ```sh
-$ docker build --pull --rm -f "Dockerfile" -t snake:latest "."
+$ docker image build --pull --rm -f "Dockerfile" -t snake:latest "."
 ```
 
-Create a container to get everything in one place (Code and GBDK) and attach to it
+Build project with Docker:
 
 ```sh
-# I have no idea what I'm doing.
-$ SNAKE_DEV_ID=$(docker run -dit -P --name snake-dev -v $(pwd):/opt/snake snake:latest)
-$ docker attach $SNAKE_DEV_ID
-```
-
-_Note, for subsequent runs you only need to do_: `docker start snake-dev --interactive`
-
-Make it
-
-```sh
-cd snakes && make
+docker container run --rm -it -P \                                                                                                                                                   ⇣0 B/s ⇡0 B/s 192.168.1.150    95.169.225.75   ─╯
+--name snake-dev \
+--user `id -u`:`id -g` \
+-v $(pwd):/opt/snakes \
+snake:latest \
+make
 ```
 
 Making will generate a ROM `bin/main.gb` that you can use to run Snakes.
@@ -47,3 +42,4 @@ Making will generate a ROM `bin/main.gb` that you can use to run Snakes.
 # Contribuiting
 
 This is one of my COVID-19 projects, I appreciate your input regarding Docker stuff and C development tips, but I won't be accepting PRs that actually add to the game.
+
